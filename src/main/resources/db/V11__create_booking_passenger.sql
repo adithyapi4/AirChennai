@@ -13,10 +13,10 @@ CREATE TABLE booking_passenger (
 
     CONSTRAINT fk_booking_passenger_booking
         FOREIGN KEY (booking_id)
-        REFERENCES booking(booking_id)
+        REFERENCES public.booking(booking_id)
         ON DELETE RESTRICT,
 
-    -- Supports a composite FK that verifies the passenger belongs to the same booking.
+    -- Composite key for validating that a seat's passenger belongs to its booking.
     CONSTRAINT uq_booking_passenger_id_booking
         UNIQUE (booking_passenger_id, booking_id),
 
@@ -29,6 +29,14 @@ CREATE TABLE booking_passenger (
 
 CREATE INDEX idx_booking_passenger_booking_id
     ON booking_passenger(booking_id);
+
+-- A held/booked physical seat must reference a passenger belonging to that same booking.
+-- AVAILABLE/BLOCKED seats have both columns NULL, so the composite FK is not applied to them.
+ALTER TABLE public.flight_seat
+    ADD CONSTRAINT fk_flight_seat_passenger_booking
+    FOREIGN KEY (booking_passenger_id, booking_id)
+    REFERENCES booking_passenger(booking_passenger_id, booking_id)
+    ON DELETE RESTRICT;
 
 COMMENT ON COLUMN booking_passenger.aadhaar_number_encrypted IS
     'Application-encrypted Aadhaar ciphertext stored as bytes. Use synthetic test data in demos; never store plaintext Aadhaar.';

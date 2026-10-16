@@ -18,7 +18,7 @@ CREATE TABLE employee (
     last_login_at TIMESTAMPTZ,
 
     CONSTRAINT chk_employee_department
-        CHECK (department IN ('COUNTER', 'OPERATIONS', 'FLEET', 'HR')),
+        CHECK (department IN ('COUNTER', 'OPERATIONS', 'FLEET', 'HR', 'ADMIN')),
 
     CONSTRAINT chk_employee_status
         CHECK (status IN ('ACTIVE', 'SUSPENDED', 'TERMINATED')),

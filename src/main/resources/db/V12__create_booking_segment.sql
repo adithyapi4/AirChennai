@@ -9,20 +9,24 @@ CREATE TABLE booking_segment (
 
     CONSTRAINT fk_booking_segment_booking
         FOREIGN KEY (booking_id)
-        REFERENCES booking(booking_id)
+        REFERENCES public.booking(booking_id)
         ON DELETE RESTRICT,
 
     CONSTRAINT fk_booking_segment_flight_instance
         FOREIGN KEY (flight_instance_id)
-        REFERENCES flight_instance(flight_instance_id)
+        REFERENCES public.flight_instance(flight_instance_id)
         ON DELETE RESTRICT,
 
     CONSTRAINT uq_booking_segment_order
         UNIQUE (booking_id, segment_order),
 
-    -- Supports a composite FK that verifies the segment belongs to the same booking.
-    CONSTRAINT uq_booking_segment_id_booking
-        UNIQUE (booking_segment_id, booking_id),
+    -- A booking cannot contain the same flight instance more than once.
+    CONSTRAINT uq_booking_segment_booking_instance
+        UNIQUE (booking_id, flight_instance_id),
+
+    -- Required target key for the FK below, which also validates cabin class.
+    CONSTRAINT uq_booking_segment_booking_instance_cabin
+        UNIQUE (booking_id, flight_instance_id, cabin_class),
 
     CONSTRAINT chk_booking_segment_order
         CHECK (segment_order > 0),
@@ -36,3 +40,12 @@ CREATE TABLE booking_segment (
 
 CREATE INDEX idx_booking_segment_flight_instance_id
     ON booking_segment(flight_instance_id);
+
+-- A specifically held/booked seat must belong to a flight instance and cabin
+-- included in that booking. Available/blocked seats have booking_id NULL, so
+-- they do not reference a booking segment.
+ALTER TABLE public.flight_seat
+    ADD CONSTRAINT fk_flight_seat_booking_segment_cabin
+    FOREIGN KEY (booking_id, flight_instance_id, cabin_class)
+    REFERENCES booking_segment(booking_id, flight_instance_id, cabin_class)
+    ON DELETE RESTRICT;

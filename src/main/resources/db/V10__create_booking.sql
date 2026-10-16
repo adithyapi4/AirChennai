@@ -40,18 +40,19 @@ CREATE TABLE booking (
         )
 );
 
--- Now that booking exists, enforce which booking owns a temporary seat hold.
-ALTER TABLE flight_seat
-    ADD CONSTRAINT fk_flight_seat_held_by_booking
-    FOREIGN KEY (held_by_booking_id)
+-- V9 uses booking_id (not held_by_booking_id) for a specific seat hold/assignment.
+ALTER TABLE public.flight_seat
+    ADD CONSTRAINT fk_flight_seat_booking
+    FOREIGN KEY (booking_id)
     REFERENCES booking(booking_id)
     ON DELETE RESTRICT;
 
 CREATE INDEX idx_booking_status_hold_expires_at
     ON booking(status, hold_expires_at);
 
-CREATE INDEX idx_flight_seat_held_by_booking_id
-    ON flight_seat(held_by_booking_id);
+CREATE INDEX idx_flight_seat_booking_id
+    ON public.flight_seat(booking_id)
+    WHERE booking_id IS NOT NULL;
 
 COMMENT ON TABLE booking IS
     'Guest reservation parent record. One booking may contain multiple passengers and flight segments. The booking-level PNR is stored in ticket and is created only after successful payment.';
