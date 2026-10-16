@@ -50,10 +50,6 @@ ALTER TABLE public.flight_seat
 CREATE INDEX idx_booking_status_hold_expires_at
     ON booking(status, hold_expires_at);
 
-CREATE INDEX idx_flight_seat_booking_id
-    ON public.flight_seat(booking_id)
-    WHERE booking_id IS NOT NULL;
-
 COMMENT ON TABLE booking IS
     'Guest reservation parent record. One booking may contain multiple passengers and flight segments. The booking-level PNR is stored in ticket and is created only after successful payment.';
 
