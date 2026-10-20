@@ -9,6 +9,7 @@ import java.util.List;
 
 public class EmployeeUserDetails implements UserDetails
 {
+    private final String firstName;
     private final long employeeId;
     private final String employeeCode;
     private final String passwordHash;
@@ -19,6 +20,7 @@ public class EmployeeUserDetails implements UserDetails
     public EmployeeUserDetails(
             long employeeId,
             String employeeCode,
+            String firstName,
             String passwordHash,
             String department,
             String status,
@@ -26,6 +28,7 @@ public class EmployeeUserDetails implements UserDetails
     {
         this.employeeId = employeeId;
         this.employeeCode = employeeCode;
+        this.firstName = firstName;
         this.passwordHash = passwordHash;
         this.department = department;
         this.status = status;
@@ -33,6 +36,7 @@ public class EmployeeUserDetails implements UserDetails
     }
 
     public long getEmployeeId() { return employeeId; }
+    public String getFirstName() { return firstName; }
     public String getDepartment() { return department; }
     public boolean isMustChangePassword() { return mustChangePassword; }
 

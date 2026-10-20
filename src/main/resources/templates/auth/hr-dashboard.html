@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard | AirChennai</title>
+    <th:block th:replace="~{fragments/employee-logout :: styles}"></th:block>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fffdf5;
+            color: #292929;
+        }
+
+        /* Header */
+        .employee-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 6%;
+            background: #ffcc00;
+        }
+
+        .brand {
+            color: #292929;
+            font-size: 22px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .logout-button {
+            padding: 9px 16px;
+            border: 1px solid #292929;
+            border-radius: 6px;
+            background: transparent;
+            color: #292929;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .logout-button:hover {
+            background: #292929;
+            color: white;
+        }
+
+        /* Dashboard */
+        main {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 160px;
+            padding: 25px 20px;
+            border: 1px solid #eadfba;
+            border-radius: 10px;
+            background: white;
+            color: #292929;
+            text-align: center;
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: bold;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .action:hover {
+            background: #fff2b3;
+            transform: translateY(-3px);
+        }
+
+        .action-icon {
+            display: block;
+            width: 38px;
+            height: 38px;
+            margin-bottom: 14px;
+            color: #b88600;
+        }
+
+        @media (max-width: 480px) {
+            main {
+                margin-top: 30px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Shared employee logout header -->
+<div th:replace="~{fragments/employee-logout :: header}"></div>
+
+<main>
+    <h1>HR Dashboard</h1>
+
+    <div class="actions">
+
+        <!-- Add Employees -->
+        <a class="action"
+           th:href="@{/employee/hr/employees/add}">
+
+            <svg class="action-icon"
+                 xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <circle cx="9" cy="8" r="4"/>
+                <path d="M3 21v-2a6 6 0 0 1 12 0v2"/>
+                <path d="M19 8v6"/>
+                <path d="M22 11h-6"/>
+            </svg>
+
+            <span>Add Employees</span>
+        </a>
+
+        <!-- Remove Employees -->
+        <a class="action"
+           th:href="@{/employee/hr/employees/remove}">
+
+            <svg class="action-icon"
+                 xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <circle cx="9" cy="8" r="4"/>
+                <path d="M3 21v-2a6 6 0 0 1 12 0v2"/>
+                <path d="M16 11h6"/>
+            </svg>
+
+            <span>Remove Employees</span>
+        </a>
+
+        <!-- Change Airport -->
+        <a class="action"
+           th:href="@{/employee/hr/airports}">
+
+            <svg class="action-icon"
+                 xmlns="http://www.w3.org/2000/svg"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round"
+                 stroke-linejoin="round"
+                 aria-hidden="true">
+                <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/>
+                <circle cx="12" cy="10" r="2.5"/>
+            </svg>
+
+            <span>Change Airport</span>
+        </a>
+
+    </div>
+</main>
+
+</body>
+</html>

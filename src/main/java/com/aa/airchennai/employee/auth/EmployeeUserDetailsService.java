@@ -23,12 +23,13 @@ public class EmployeeUserDetailsService implements UserDetailsService
         try
         {
             return jdbcTemplate.queryForObject("""SELECT employee_id, employee_code, 
-                                                    password_hash, department, status, 
-                                                    must_change_password FROM employee
+                                                    first_name, password_hash, department,
+                                                    status, must_change_password FROM employee
                                                     WHERE employee_code = ?""",
                     (resultSet, rowNumber) -> new EmployeeUserDetails(
                             resultSet.getLong("employee_id"),
                             resultSet.getString("employee_code"),
+                            resultSet.getString("first_name"),
                             resultSet.getString("password_hash"),
                             resultSet.getString("department"),
                             resultSet.getString("status"),
