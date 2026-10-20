@@ -1,0 +1,327 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Employee | AirChennai</title>
+
+    <!-- Shared employee header styles -->
+    <th:block th:replace="~{fragments/employee-logout :: styles}"></th:block>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fffdf5;
+            color: #292929;
+        }
+
+        main {
+            max-width: 680px;
+            margin: 38px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            margin: 0 0 24px;
+            font-size: 27px;
+        }
+
+        .form-card {
+            padding: 28px;
+            background: white;
+            border: 1px solid #eadfba;
+            border-radius: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #c9c9c9;
+            border-radius: 6px;
+            background: white;
+            color: #292929;
+            font: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid #ffcc00;
+            outline-offset: 1px;
+            border-color: #b88600;
+        }
+
+        .submit-button {
+            margin-top: 24px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #ffcc00;
+            color: #292929;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background: #e6b800;
+        }
+
+        .error-box, .success-box {
+            margin-bottom: 20px;
+            padding: 15px 18px;
+            border-radius: 7px;
+        }
+
+        .error-box {
+            border: 1px solid #d84a4a;
+            background: #fff0f0;
+            color: #8d1c1c;
+        }
+
+        .success-box {
+            border: 1px solid #b5a04c;
+            background: #fff6cc;
+            overflow-wrap: anywhere;
+        }
+
+        .error-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .temporary-password {
+            display: inline-block;
+            margin: 5px 0;
+            padding: 8px 10px;
+            background: white;
+            border: 1px solid #eadfba;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 16px;
+            user-select: all;
+        }
+
+        .copy-button {
+            margin-left: 8px;
+            padding: 8px 12px;
+            border: 1px solid #292929;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .note {
+            margin-bottom: 0;
+            font-size: 13px;
+        }
+
+        @media (max-width: 520px) {
+            main {
+                margin-top: 28px;
+            }
+
+            .form-card {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .field.full-width {
+                grid-column: auto;
+            }
+
+            .copy-button {
+                display: block;
+                margin: 10px 0 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Shared greeting, home icon, and logout button -->
+<div th:replace="~{fragments/employee-logout :: header}"></div>
+
+<main>
+    <h1>Add Employee</h1>
+
+    <!-- Display validation or database errors -->
+    <div class="error-box" th:if="${errors != null}">
+        <ul>
+            <li th:each="error : ${errors}"
+                th:text="${error}">
+            </li>
+        </ul>
+    </div>
+
+    <!-- Shown once after an employee is successfully created -->
+    <div class="success-box"
+         th:if="${createdEmployeeCode != null}">
+
+        <h2>Employee Created Successfully</h2>
+
+        <p>
+            Employee code:
+            <strong th:text="${createdEmployeeCode}"></strong>
+        </p>
+
+        <p>Temporary password:</p>
+
+        <code id="temporaryPassword"
+              class="temporary-password"
+              th:text="${temporaryPassword}">
+        </code>
+
+        <button type="button"
+                class="copy-button"
+                onclick="copyTemporaryPassword()">
+            Copy Password
+        </button>
+
+        <p class="note">
+            Share this password securely with the employee.
+            It will not be displayed again after leaving this page.
+            The employee must change it after logging in.
+        </p>
+    </div>
+
+    <section class="form-card">
+        <form th:action="@{/employee/hr/employees/add}"
+              th:object="${form}"
+              method="post">
+
+            <div class="form-grid">
+
+                <div class="field">
+                    <label for="employeeCode">Employee Code</label>
+                    <input type="text"
+                           id="employeeCode"
+                           th:field="*{employeeCode}"
+                           maxlength="20"
+                           pattern="[A-Za-z0-9_-]{3,20}"
+                           autocomplete="off"
+                           required>
+                </div>
+
+                <div class="field">
+                    <label for="department">Department</label>
+                    <select id="department"
+                            th:field="*{department}"
+                            required>
+                        <option value="">Select department</option>
+                        <option th:each="department : ${allowedDepartments}"
+                                th:value="${department}"
+                                th:text="${department}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="field full-width">
+                    <label for="email">Email Address</label>
+                    <input type="email"
+                           id="email"
+                           th:field="*{email}"
+                           maxlength="254"
+                           autocomplete="email"
+                           required>
+                </div>
+
+                <div class="field">
+                    <label for="firstName">First Name</label>
+                    <input type="text"
+                           id="firstName"
+                           th:field="*{firstName}"
+                           maxlength="100"
+                           autocomplete="given-name"
+                           required>
+                </div>
+
+                <div class="field">
+                    <label for="lastName">Last Name</label>
+                    <input type="text"
+                           id="lastName"
+                           th:field="*{lastName}"
+                           maxlength="100"
+                           autocomplete="family-name"
+                           required>
+                </div>
+
+                <div class="field full-width">
+                    <label for="phoneNo">Mobile Number</label>
+                    <input type="tel"
+                           id="phoneNo"
+                           th:field="*{phoneNo}"
+                           inputmode="numeric"
+                           pattern="[6-9][0-9]{9}"
+                           maxlength="10"
+                           minlength="10"
+                           autocomplete="tel"
+                           placeholder="10-digit Indian mobile number"
+                           required>
+                </div>
+
+            </div>
+
+            <button type="submit" class="submit-button">
+                Add Employee
+            </button>
+
+        </form>
+    </section>
+</main>
+
+<script>
+    async function copyTemporaryPassword() {
+        const passwordElement =
+            document.getElementById("temporaryPassword");
+
+        if (!passwordElement) {
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(
+                passwordElement.textContent.trim()
+            );
+
+            alert("Temporary password copied.");
+        } catch (error) {
+            alert(
+                "Copy was unavailable. Select the temporary password "
+                + "and copy it manually."
+            );
+        }
+    }
+</script>
+
+</body>
+</html>

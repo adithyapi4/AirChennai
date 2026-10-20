@@ -22,7 +22,8 @@ public class EmployeeUserDetailsService implements UserDetailsService
     {
         try
         {
-            return jdbcTemplate.queryForObject("""SELECT employee_id, employee_code, 
+            return jdbcTemplate.queryForObject("""
+                                                    SELECT employee_id, employee_code, 
                                                     first_name, password_hash, department,
                                                     status, must_change_password FROM employee
                                                     WHERE employee_code = ?""",
