@@ -13,12 +13,6 @@ public class PageController
         return "index";
     }
 
-    /** Login dropdown -> "Employee Login". */
-    @GetMapping("/employee/login")
-    public String employeeLogin() {
-        return "employee-login";
-    }
-
     /** Login dropdown -> "Customer Login" opens the registration page. */
     @GetMapping("/customer/register")
     public String customerRegister(Model model) {
