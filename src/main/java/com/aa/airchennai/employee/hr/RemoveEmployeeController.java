@@ -254,7 +254,11 @@ public class RemoveEmployeeController
                 String phoneNo,
                 String department,
                 String status,
-                String hiredOn)
+                String hiredOn,
+                String baseAirportCode,
+                String baseAirportName,
+                String baseAirportCity,
+                Boolean baseAirportActive)
         {
             this.employeeId = employeeId;
             this.employeeCode = employeeCode;
