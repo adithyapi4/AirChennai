@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${origin.code} + ' to ' + ${destination.code} + ' | AirChennai'">Flights | AirChennai</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff8dc 0%, #fffdf5 55%, #fff1b8 100%);
+            color: #292524;
+            font-family: Arial, sans-serif;
+        }
+
+        a { color: inherit; }
+
+        .top-bar {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 76px;
+            padding: 16px 24px;
+            background: #ffffff;
+            border-bottom: 1px solid #f5df82;
+            box-shadow: 0 6px 20px rgba(161, 98, 7, 0.08);
+        }
+
+        .brand-name {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #854d0e;
+        }
+
+        .brand-name a { text-decoration: none; }
+
+        .page {
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 28px 24px 64px;
+        }
+
+        /* ---------- Search summary ---------- */
+        .summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 18px 24px;
+            background: #ffffff;
+            border: 1px solid #f5df82;
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(161, 98, 7, 0.10);
+        }
+
+        .summary h2 {
+            margin: 0 0 4px;
+            font-size: 22px;
+        }
+
+        .summary h2 .arrow { color: #ca8a04; padding: 0 6px; }
+
+        .summary p {
+            margin: 0;
+            color: #78716c;
+            font-size: 14px;
+        }
+
+        .btn-outline {
+            display: inline-block;
+            padding: 10px 16px;
+            border: 1px solid #e7c84b;
+            border-radius: 8px;
+            background: #fffdf5;
+            color: #854d0e;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .btn-outline:hover { background: #fff4bf; }
+
+        .day-nav {
+            display: flex;
+            justify-content: space-between;
+            margin: 14px 2px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .day-nav a { color: #854d0e; text-decoration: none; }
+        .day-nav a:hover { text-decoration: underline; }
+        .day-nav .spacer { visibility: hidden; }
+
+        /* ---------- Sections ---------- */
+        .leg-title {
+            margin: 30px 2px 6px;
+            font-size: 18px;
+            color: #854d0e;
+        }
+
+        .leg-title small {
+            margin-left: 8px;
+            color: #78716c;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .result-count {
+            margin: 20px 2px 12px;
+            color: #78716c;
+            font-size: 13px;
+        }
+
+        /* ---------- Flight card ---------- */
+        .flight-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+            margin-bottom: 14px;
+            background: #ffffff;
+            border: 1px solid #f5df82;
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(161, 98, 7, 0.10);
+            overflow: hidden;
+        }
+
+        .journey {
+            padding: 22px 26px;
+        }
+
+        .times {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .point { min-width: 0; }
+
+        .point .time {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .point .time sup {
+            margin-left: 4px;
+            color: #b45309;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .point .place {
+            margin-top: 4px;
+            color: #78716c;
+            font-size: 13px;
+        }
+
+        .point .place strong {
+            color: #854d0e;
+            letter-spacing: 1px;
+        }
+
+        .path {
+            flex: 1 1 auto;
+            min-width: 70px;
+            text-align: center;
+            color: #78716c;
+            font-size: 12px;
+        }
+
+        .path .line {
+            position: relative;
+            height: 2px;
+            margin: 6px 0;
+            background: #e7c84b;
+        }
+
+        .path .line::after {
+            content: "";
+            position: absolute;
+            right: -1px;
+            top: -4px;
+            border-left: 8px solid #e7c84b;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 14px;
+            margin-top: 16px;
+            color: #78716c;
+            font-size: 13px;
+        }
+
+        .meta .flight-no {
+            color: #292524;
+            font-weight: 700;
+        }
+
+        .badge {
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ---------- Fares ---------- */
+        .fares {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+            padding: 18px 22px;
+            background: #fffdf5;
+            border-left: 1px solid #f5df82;
+        }
+
+        .fare {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .fare .cabin {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .fare .left {
+            display: block;
+            margin-top: 2px;
+            color: #78716c;
+            font-size: 11px;
+            font-weight: 400;
+        }
+
+        .fare .left.few { color: #b45309; font-weight: 700; }
+
+        .fare .right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fare .price {
+            font-size: 18px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .book-button {
+            display: inline-block;
+            padding: 9px 18px;
+            border-radius: 8px;
+            background: #eab308;
+            color: #292524;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .book-button:hover { background: #facc15; }
+
+        .book-button:focus-visible {
+            outline: 2px solid #ca8a04;
+            outline-offset: 2px;
+        }
+
+        .sold-out {
+            padding: 9px 12px;
+            color: #a8a29e;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .tax-note {
+            margin: 2px 0 0;
+            color: #a8a29e;
+            font-size: 11px;
+        }
+
+
+        /* ---------- Connecting itineraries ---------- */
+        .notice {
+            margin: 20px 0 0;
+            padding: 14px 18px;
+            background: #fff4bf;
+            border: 1px solid #e7c84b;
+            border-radius: 10px;
+            color: #713f12;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .connection {
+            margin-bottom: 22px;
+            padding: 14px 16px 4px;
+            background: #fffbe6;
+            border: 1px solid #f5df82;
+            border-radius: 16px;
+        }
+
+        .connection-head {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 6px 16px;
+            margin-bottom: 4px;
+            color: #854d0e;
+            font-size: 15px;
+        }
+
+        .connection-stats { color: #78716c; font-size: 13px; }
+        .connection-stats strong { color: #292524; }
+
+        .segment-label {
+            margin: 12px 2px 8px;
+            color: #78716c;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .layover-bar {
+            margin: 0 0 2px;
+            padding: 8px 14px;
+            border: 1px dashed #e7c84b;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #78716c;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        /* ---------- Empty state ---------- */
+        .empty {
+            padding: 40px 24px;
+            background: #ffffff;
+            border: 1px dashed #e7c84b;
+            border-radius: 14px;
+            text-align: center;
+        }
+
+        .empty h3 { margin: 0 0 8px; font-size: 18px; }
+        .empty p { margin: 0 0 18px; color: #78716c; font-size: 14px; line-height: 1.6; }
+
+        @media (max-width: 760px) {
+            .flight-card { grid-template-columns: 1fr; }
+            .fares { border-left: none; border-top: 1px solid #f5df82; }
+            .journey { padding: 18px; }
+            .point .time { font-size: 24px; }
+        }
+
+        @media (max-width: 480px) {
+            .page { padding: 20px 14px 48px; }
+            .times { gap: 10px; }
+            .fare { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+
+<body>
+<header class="top-bar">
+    <h1 class="brand-name"><a th:href="@{/}">AirChennai</a></h1>
+</header>
+
+<main class="page">
+    <section class="summary" aria-label="Your search">
+        <div>
+            <h2>
+                <span th:text="${origin.city} + ' (' + ${origin.code} + ')'">Chennai (MAA)</span><span class="arrow" aria-hidden="true">&rarr;</span><span th:text="${destination.city} + ' (' + ${destination.code} + ')'">Mumbai (BOM)</span>
+            </h2>
+            <p>
+                <span th:text="${#temporals.format(departureDate, 'EEE, d MMM yyyy')}">Tue, 10 Nov 2026</span>
+                <span th:if="${tripType == 'ROUND_TRIP'}">
+                    &nbsp;&middot;&nbsp; Return <span th:text="${#temporals.format(returnDate, 'EEE, d MMM yyyy')}">Fri, 13 Nov 2026</span>
+                </span>
+                &nbsp;&middot;&nbsp; <span th:text="${tripType == 'ROUND_TRIP' ? 'Round trip' : 'One way'}">One way</span>
+            </p>
+        </div>
+        <a class="btn-outline" th:if="${bookTarget != null}"
+           th:href="@{/booking/seats(flightInstanceId=${bookTarget.flightInstanceId},cabin=${bookTarget.cabin})}">Book ticket</a>
+        <!-- nothing to book on this search -> only offer a way back -->
+        <a class="btn-outline" th:if="${bookTarget == null}" th:href="@{/}">Modify search</a>
+    </section>
+
+    <nav class="day-nav" th:if="${tripType == 'ONE_WAY'}" aria-label="Change date">
+        <a th:if="${prevDate != null}"
+           th:href="@{/flights/search(from=${origin.code},to=${destination.code},departureDate=${prevDate},tripType='ONE_WAY')}">&larr; Previous day</a>
+        <span th:if="${prevDate == null}" class="spacer">&larr; Previous day</span>
+        <a th:href="@{/flights/search(from=${origin.code},to=${destination.code},departureDate=${nextDate},tripType='ONE_WAY')}">Next day &rarr;</a>
+    </nav>
+
+    <!-- Outbound -->
+    <h3 class="leg-title" th:if="${tripType == 'ROUND_TRIP'}">
+        Outbound<small th:text="${origin.city} + ' to ' + ${destination.city} + ' · ' + ${#temporals.format(departureDate, 'd MMM yyyy')}">Chennai to Mumbai</small>
+    </h3>
+    <th:block th:replace="~{fragments/flight-list :: flightList(${outbound}, ${outboundConnections}, ${origin}, ${destination}, ${departureDate})}"></th:block>
+
+    <!-- Return (round trip only) -->
+    <th:block th:if="${tripType == 'ROUND_TRIP'}">
+        <h3 class="leg-title">
+            Return<small th:text="${destination.city} + ' to ' + ${origin.city} + ' · ' + ${#temporals.format(returnDate, 'd MMM yyyy')}">Mumbai to Chennai</small>
+        </h3>
+        <th:block th:replace="~{fragments/flight-list :: flightList(${inbound}, ${inboundConnections}, ${destination}, ${origin}, ${returnDate})}"></th:block>
+    </th:block>
+</main>
+
+</body>
+</html>

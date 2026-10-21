@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment | AirChennai</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: linear-gradient(135deg, #fff8dc 0%, #fffdf5 55%, #fff1b8 100%);
+            color: #292524;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 520px;
+            padding: 36px;
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #f5df82;
+            box-shadow: 0 16px 40px rgba(161, 98, 7, 0.13);
+        }
+
+        .brand-name { margin: 0 0 24px; text-align: center; font-size: 28px; font-weight: 800; letter-spacing: 1px; color: #854d0e; }
+        .brand-name a { text-decoration: none; color: inherit; }
+
+        h2 { margin: 0 0 18px; font-size: 22px; }
+
+        .timer {
+            margin: 0 0 18px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: #fff4bf;
+            color: #854d0e;
+            font-size: 14px;
+        }
+
+        .timer strong { font-variant-numeric: tabular-nums; }
+        .timer.expired { background: #fee2e2; color: #991b1b; }
+
+        dl { margin: 0 0 18px; }
+        dt { margin-top: 12px; color: #78716c; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+        dd { margin: 4px 0 0; font-size: 16px; font-weight: 600; }
+
+        .total {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin: 0 0 22px;
+            padding-top: 14px;
+            border-top: 1px solid #f5df82;
+            font-size: 15px;
+        }
+
+        .total strong { font-size: 24px; }
+
+        fieldset { margin: 0 0 20px; padding: 0; border: none; }
+        legend { margin-bottom: 8px; color: #78716c; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+
+        .method {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            padding: 11px 14px;
+            border: 1px solid #f5df82;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .method:has(input:checked) { border-color: #ca8a04; background: #fffbe6; }
+
+        .pay {
+            width: 100%;
+            padding: 13px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #eab308;
+            color: #292524;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .pay:disabled { background: #e7e5e4; color: #a8a29e; }
+
+        .note {
+            margin: 14px 0 0;
+            padding: 11px;
+            border-radius: 7px;
+            background: #fff4bf;
+            color: #854d0e;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .actions { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-block;
+            padding: 11px 18px;
+            border: 1px solid #e7c84b;
+            border-radius: 8px;
+            background: #fffdf5;
+            color: #854d0e;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .btn:hover { background: #fff4bf; }
+    </style>
+</head>
+
+<body>
+<main class="card">
+    <h1 class="brand-name"><a th:href="@{/}">AirChennai</a></h1>
+    <h2>Payment</h2>
+
+    <p class="timer" id="timer" th:data-until="${hold.heldUntilEpochMs}">
+        Seat held for <strong id="clock">--:--</strong>
+    </p>
+
+    <dl>
+        <dt>Flight</dt>
+        <dd th:text="${flight.flightNumber} + ' · ' + ${flight.aircraft}">AC220 · Airbus A320-200</dd>
+
+        <dt>Route</dt>
+        <dd th:text="${flight.origin.city} + ' (' + ${flight.origin.code} + ') → ' + ${flight.destination.city} + ' (' + ${flight.destination.code} + ')'">Chennai (MAA) → Mumbai (BOM)</dd>
+
+        <dt>Departs</dt>
+        <dd th:text="${flight.departureDate} + ' at ' + ${flight.departureTime}">Tue, 10 Nov 2026 at 08:55</dd>
+
+        <dt>Seat</dt>
+        <dd th:text="${hold.seatNumber} + ' · ' + ${fare.label}">12A · Economy</dd>
+
+        <dt>Fare</dt>
+        <dd th:text="${fare.priceText} + ' per passenger'">&#8377;5,460 per passenger</dd>
+
+        <dt th:if="${seatFeeText != null}">Seat fee</dt>
+        <dd th:if="${seatFeeText != null}" th:text="${seatFeeText}">&#8377;300</dd>
+    </dl>
+
+    <div class="total">
+        <span>Total to pay</span>
+        <strong th:text="${totalText}">&#8377;5,460</strong>
+    </div>
+
+    <fieldset disabled>
+        <legend>Payment method</legend>
+        <label class="method"><input type="radio" name="method" value="UPI" checked> UPI</label>
+        <label class="method"><input type="radio" name="method" value="CARD"> Credit / debit card</label>
+        <label class="method"><input type="radio" name="method" value="NET_BANKING"> Net banking</label>
+    </fieldset>
+
+    <button type="button" class="pay" disabled th:text="'Pay ' + ${totalText}">Pay</button>
+
+    <p class="note">Passenger details and the payment gateway are the next step to build. Your seat stays held until the timer runs out.</p>
+
+    <div class="actions">
+        <a class="btn" th:href="@{/booking/seats(flightInstanceId=${flight.flightInstanceId},cabin=${hold.cabin})}">Change seat</a>
+        <a class="btn" th:href="@{/}">New search</a>
+    </div>
+</main>
+
+<script>
+    (function () {
+        var timer = document.getElementById('timer');
+        var clock = document.getElementById('clock');
+        var until = Number(timer.dataset.until);
+
+        function tick() {
+            var left = Math.max(0, Math.floor((until - Date.now()) / 1000));
+            if (left === 0) {
+                timer.classList.add('expired');
+                timer.textContent = 'Your seat hold has expired. Use "Change seat" to choose a seat again.';
+                clearInterval(handle);
+                return;
+            }
+            var m = String(Math.floor(left / 60)).padStart(2, '0');
+            var s = String(left % 60).padStart(2, '0');
+            clock.textContent = m + ':' + s;
+        }
+
+        var handle = setInterval(tick, 1000);
+        tick();
+    })();
+</script>
+</body>
+</html>

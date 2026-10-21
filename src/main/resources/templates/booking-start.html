@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Your selection | AirChennai</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: linear-gradient(135deg, #fff8dc 0%, #fffdf5 55%, #fff1b8 100%);
+            color: #292524;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 480px;
+            padding: 36px;
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #f5df82;
+            box-shadow: 0 16px 40px rgba(161, 98, 7, 0.13);
+        }
+
+        .brand-name {
+            margin: 0 0 24px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #854d0e;
+        }
+
+        h2 { margin: 0 0 18px; font-size: 22px; }
+
+        dl { margin: 0 0 22px; }
+        dt { margin-top: 12px; color: #78716c; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+        dd { margin: 4px 0 0; font-size: 16px; font-weight: 600; }
+
+        .note {
+            padding: 11px;
+            border-radius: 7px;
+            background: #fff4bf;
+            color: #854d0e;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .actions { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-block;
+            padding: 11px 18px;
+            border: 1px solid #e7c84b;
+            border-radius: 8px;
+            background: #fffdf5;
+            color: #854d0e;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .btn:hover { background: #fff4bf; }
+    </style>
+</head>
+
+<body>
+<main class="card">
+    <h1 class="brand-name">AirChennai</h1>
+    <h2>Your selection</h2>
+
+    <dl>
+        <dt>Flight</dt>
+        <dd th:text="${flight.flightNumber} + ' · ' + ${flight.aircraft}">AC220 · Airbus A320-200</dd>
+
+        <dt>Route</dt>
+        <dd th:text="${flight.origin.city} + ' (' + ${flight.origin.code} + ') → ' + ${flight.destination.city} + ' (' + ${flight.destination.code} + ')'">Chennai (MAA) → Mumbai (BOM)</dd>
+
+        <dt>Departs</dt>
+        <dd th:text="${flight.departureDate} + ' at ' + ${flight.departureTime}">Tue, 10 Nov 2026 at 08:55</dd>
+
+        <dt>Arrives</dt>
+        <dd th:text="${flight.arrivalTime} + (${flight.arrivalDayNote} != null ? ' (' + ${flight.arrivalDayNote} + ')' : '')">10:55</dd>
+
+        <dt>Cabin</dt>
+        <dd th:text="${fare.label} + ' · ' + ${fare.priceText} + ' per passenger'">Economy · ₹5,460 per passenger</dd>
+    </dl>
+
+    <p class="note">Passenger details, seat selection and payment are the next step to build.</p>
+
+    <div class="actions">
+        <a class="btn" href="javascript:history.back()">Back to results</a>
+        <a class="btn" th:href="@{/}">New search</a>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- List of flights for one direction; used by search-results.html -->
+<th:block th:fragment="flightList(list, connections, from, to, day)">
+    <p class="result-count" th:if="${!list.isEmpty()}"
+       th:text="${list.size()} + (${list.size() == 1} ? ' flight found' : ' flights found') + ' · prices are per passenger, taxes included'">3 flights found</p>
+
+    <th:block th:each="f : ${list}">
+        <th:block th:replace="~{fragments/flight-list :: flightCard(${f})}"></th:block>
+    </th:block>
+
+
+    <!-- No direct flight: one-stop options built from two separate flights -->
+    <th:block th:if="${list.isEmpty() and !connections.isEmpty()}">
+        <div class="notice">
+            No direct flights from <strong th:text="${from.city} + ' (' + ${from.code} + ')'">Chennai (MAA)</strong>
+            to <strong th:text="${to.city} + ' (' + ${to.code} + ')'">Mumbai (BOM)</strong>
+            on <span th:text="${#temporals.format(day, 'EEE, d MMM yyyy')}">Tue, 10 Nov 2026</span>.
+            Here are connecting options. Each flight is booked separately.
+        </div>
+        <p class="result-count"
+           th:text="${connections.size()} + (${connections.size() == 1} ? ' connecting option found' : ' connecting options found') + ' · prices are per passenger, taxes included'">2 connecting options found</p>
+
+        <section class="connection" th:each="c : ${connections}">
+            <div class="connection-head">
+                <div>
+                    <strong>1 stop</strong> &middot; via
+                    <span th:text="${c.hub.city} + ' (' + ${c.hub.code} + ')'">Bengaluru (BLR)</span>
+                </div>
+                <div class="connection-stats">
+                    Layover <strong th:text="${c.layover}">1h 45m</strong>
+                    &nbsp;&middot;&nbsp; Total <strong th:text="${c.totalDuration}">5h 10m</strong>
+                </div>
+            </div>
+
+            <div class="segment-label">
+                Flight 1 of 2 &middot;
+                <span th:text="${c.first.origin.city} + ' to ' + ${c.first.destination.city}">Chennai to Bengaluru</span>
+                &middot; <span th:text="${c.first.departureDate}">Tue, 10 Nov 2026</span>
+            </div>
+            <th:block th:replace="~{fragments/flight-list :: flightCard(${c.first})}"></th:block>
+
+            <div class="layover-bar">
+                Change flights at <strong th:text="${c.hub.name}">Kempegowda International Airport</strong>
+                &middot; <span th:text="${c.layover}">1h 45m</span> layover
+            </div>
+
+            <div class="segment-label">
+                Flight 2 of 2 &middot;
+                <span th:text="${c.second.origin.city} + ' to ' + ${c.second.destination.city}">Bengaluru to Delhi</span>
+                &middot; <span th:text="${c.second.departureDate}">Tue, 10 Nov 2026</span>
+            </div>
+            <th:block th:replace="~{fragments/flight-list :: flightCard(${c.second})}"></th:block>
+        </section>
+    </th:block>
+
+    <div class="empty" th:if="${list.isEmpty() and connections.isEmpty()}">
+        <h3>No flights found</h3>
+        <p>
+            There are no flights from <strong th:text="${from.city} + ' (' + ${from.code} + ')'">Chennai (MAA)</strong>
+            to <strong th:text="${to.city} + ' (' + ${to.code} + ')'">Mumbai (BOM)</strong>
+            on <span th:text="${#temporals.format(day, 'EEE, d MMM yyyy')}">Tue, 10 Nov 2026</span>.<br>
+            Try a different date or airport.
+        </p>
+        <a class="btn-outline" th:href="@{/}">Search again</a>
+    </div>
+</th:block>
+
+<!-- One flight (one flight-table row + its dated departure); used for direct flights and for each leg of a connection -->
+<article class="flight-card" th:fragment="flightCard(f)">
+        <div class="journey">
+            <div class="times">
+                <div class="point">
+                    <div class="time" th:text="${f.departureTime}">06:10</div>
+                    <div class="place" th:title="${f.origin.name}"><strong th:text="${f.origin.code}">MAA</strong> &middot; <span th:text="${f.origin.city}">Chennai</span></div>
+                </div>
+
+                <div class="path">
+                    <div th:text="${f.duration}">2h 00m</div>
+                    <div class="line"></div>
+                    <div>Direct</div>
+                </div>
+
+                <div class="point">
+                    <div class="time"><span th:text="${f.arrivalTime}">08:10</span><sup th:if="${f.arrivalDayNote != null}" th:text="${f.arrivalDayNote}">+1 day</sup></div>
+                    <div class="place" th:title="${f.destination.name}"><strong th:text="${f.destination.code}">BOM</strong> &middot; <span th:text="${f.destination.city}">Mumbai</span></div>
+                </div>
+            </div>
+
+            <div class="meta">
+                <span class="flight-no" th:text="${f.flightNumber}">AC220</span>
+                <span th:text="${f.aircraft}">Airbus A320-200</span>
+                <span th:if="${f.terminal != null}" th:text="'Terminal ' + ${f.terminal}">Terminal 1</span>
+                <span class="badge" th:if="${f.delayed}">Delayed</span>
+            </div>
+        </div>
+
+        <div class="fares">
+            <p class="tax-note" th:unless="${f.faresPublished}">Fares for this date are not published yet.</p>
+            <div class="fare" th:each="c : ${f.fares}">
+                <div class="cabin">
+                    <span th:text="${c.label}">Economy</span>
+                    <span class="left" th:classappend="${c.fewLeft} ? 'few'"
+                         th:if="${c.available}"
+                         th:text="${c.seatsLeft} + (${c.seatsLeft == 1} ? ' seat left' : ' seats left')">42 seats left</span>
+                </div>
+                <div class="right" th:if="${c.available}">
+                    <span class="price" th:text="${c.priceText}">&#8377;5,460</span>
+                    <a class="book-button"
+                       th:href="@{/booking/seats(flightInstanceId=${f.flightInstanceId},cabin=${c.code})}"
+                       th:attr="aria-label='Book ' + ${c.label} + ' seat on flight ' + ${f.flightNumber}">Book</a>
+                </div>
+                <div class="right" th:unless="${c.available}">
+                    <span class="sold-out">Sold out</span>
+                </div>
+            </div>
+        </div>
+</article>
+</body>
+</html>
