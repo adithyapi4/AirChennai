@@ -13,12 +13,4 @@ public class PageController
         return "index";
     }
 
-    /** Login dropdown -> "Customer Login" opens the registration page. */
-    @GetMapping("/customer/register")
-    public String customerRegister(Model model) {
-        if (!model.containsAttribute("registrationForm")) {
-            model.addAttribute("registrationForm", new RegistrationForm());
-        }
-        return "register";
-    }
 }
