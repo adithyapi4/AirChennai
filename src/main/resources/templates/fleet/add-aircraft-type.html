@@ -1,0 +1,590 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Aircraft Type | AirChennai</title>
+
+    <th:block th:replace="~{fragments/employee-logout :: styles}"></th:block>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            color: #292929;
+            background: #fffdf5;
+        }
+
+        main {
+            max-width: 850px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        h1 { font-size: 27px; }
+        h2 { font-size: 20px; }
+
+        .card {
+            background: white;
+            border: 1px solid #eadfba;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .step { display: none; }
+        .step.active { display: block; }
+        .has-errors .step { display: block; }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-bottom: 18px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #c9c9c9;
+            border-radius: 6px;
+            font: inherit;
+        }
+
+        input:focus {
+            outline: 2px solid #ffcc00;
+            outline-offset: 1px;
+        }
+
+        .cabin {
+            padding: 18px;
+            margin-top: 18px;
+            border: 1px solid #eadfba;
+            border-radius: 8px;
+        }
+
+        .blocks {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .seat-block {
+            padding: 10px;
+            border-radius: 6px;
+            background: #fff9df;
+        }
+
+        .help {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        button, .button {
+            padding: 11px 17px;
+            border: 1px solid #292929;
+            border-radius: 6px;
+            background: white;
+            color: #292929;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .primary {
+            background: #ffcc00;
+            border-color: #ffcc00;
+        }
+
+        .primary:hover { background: #e6b800; }
+
+        .message {
+            padding: 14px 17px;
+            border-radius: 7px;
+            margin-bottom: 18px;
+            overflow-wrap: anywhere;
+        }
+
+        .error {
+            background: #fff0f0;
+            border: 1px solid #d84a4a;
+            color: #8d1c1c;
+        }
+
+        .success {
+            background: #fff6cc;
+            border: 1px solid #b5a04c;
+            color: #514300;
+        }
+
+        @media (max-width: 520px) {
+            .card { padding: 18px; }
+            .blocks { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body th:classappend="${errors != null} ? 'has-errors' : ''">
+
+<div th:replace="~{fragments/employee-logout :: header}"></div>
+
+<main>
+    <h1>Add Aircraft Type</h1>
+
+    <div class="message success" th:if="${createdType != null}">
+        Created aircraft type
+        <strong th:text="${createdType}"></strong>
+        with ID <strong th:text="${createdTypeId}"></strong>.
+    </div>
+
+    <div class="message error" th:if="${errors != null}">
+        <ul>
+            <li th:each="error : ${errors}" th:text="${error}"></li>
+        </ul>
+    </div>
+
+    <form class="card"
+          th:action="@{/employee/fleet/aircraft-types/add}"
+          th:object="${form}"
+          method="post"
+          id="typeForm"
+          novalidate>
+
+        <section class="step active" data-step="0">
+            <h2>Step 1: Aircraft Type Details</h2>
+
+            <div class="field">
+                <label for="manufacturer">Manufacturer</label>
+                <input id="manufacturer" type="text"
+                       th:field="*{manufacturer}"
+                       maxlength="100" required>
+            </div>
+
+            <div class="field">
+                <label for="model">Model</label>
+                <input id="model" type="text"
+                       th:field="*{model}"
+                       maxlength="100" required>
+            </div>
+
+            <div class="field">
+                <label for="maxRangeKm">Maximum Range (km)</label>
+                <input id="maxRangeKm" type="number"
+                       th:field="*{maxRangeKm}"
+                       min="1" required>
+            </div>
+
+            <div class="button-row">
+                <button type="button" class="primary next-button">Next</button>
+            </div>
+        </section>
+
+        <section class="step" data-step="1">
+            <h2>Step 2: Total Seats</h2>
+
+            <div class="field">
+                <label for="totalSeats">Total Physical Seats</label>
+                <input id="totalSeats" type="number"
+                       th:field="*{totalSeats}"
+                       min="1" max="1000" required>
+            </div>
+
+            <p class="help">
+                The declared total must equal the sum of the capacities
+                calculated from all cabin rows and seat blocks.
+            </p>
+
+            <div class="button-row">
+                <button type="button" class="back-button">Back</button>
+                <button type="button" class="primary next-button">Next</button>
+            </div>
+        </section>
+
+        <section class="step" data-step="2">
+            <h2>Step 3: Cabin Seating Layout</h2>
+
+            <p class="help">
+                A block is a group of seats separated from the next block
+                by an aisle. Three blocks therefore create two aisles.
+                Set the row count and block count to zero for unused cabins.
+            </p>
+
+            <div class="cabin" data-cabin="economy">
+                <h2>Economy</h2>
+                <div class="field">
+                    <label for="economyRows">Total Rows</label>
+                    <input id="economyRows" type="number" min="0" max="100"
+                           th:field="*{economy.rows}">
+                </div>
+                <div class="field">
+                    <label for="economyBlocks">Number of Seat Blocks</label>
+                    <input id="economyBlocks" class="block-count"
+                           type="number" min="0" max="4"
+                           th:field="*{economy.blockCount}">
+                </div>
+                <div class="blocks">
+                    <div class="seat-block" data-block-number="1">
+                        <label for="economyBlock1">Block 1 seats per row</label>
+                        <input id="economyBlock1" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{economy.seatsPerBlock[0]}">
+                    </div>
+                    <div class="seat-block" data-block-number="2">
+                        <label for="economyBlock2">Block 2 seats per row</label>
+                        <input id="economyBlock2" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{economy.seatsPerBlock[1]}">
+                    </div>
+                    <div class="seat-block" data-block-number="3">
+                        <label for="economyBlock3">Block 3 seats per row</label>
+                        <input id="economyBlock3" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{economy.seatsPerBlock[2]}">
+                    </div>
+                    <div class="seat-block" data-block-number="4">
+                        <label for="economyBlock4">Block 4 seats per row</label>
+                        <input id="economyBlock4" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{economy.seatsPerBlock[3]}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="cabin" data-cabin="premiumEconomy">
+                <h2>Premium Economy</h2>
+                <div class="field">
+                    <label for="premiumRows">Total Rows</label>
+                    <input id="premiumRows" type="number" min="0" max="100"
+                           th:field="*{premiumEconomy.rows}">
+                </div>
+                <div class="field">
+                    <label for="premiumBlocks">Number of Seat Blocks</label>
+                    <input id="premiumBlocks" class="block-count"
+                           type="number" min="0" max="4"
+                           th:field="*{premiumEconomy.blockCount}">
+                </div>
+                <div class="blocks">
+                    <div class="seat-block" data-block-number="1">
+                        <label for="premiumBlock1">Block 1 seats per row</label>
+                        <input id="premiumBlock1" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{premiumEconomy.seatsPerBlock[0]}">
+                    </div>
+                    <div class="seat-block" data-block-number="2">
+                        <label for="premiumBlock2">Block 2 seats per row</label>
+                        <input id="premiumBlock2" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{premiumEconomy.seatsPerBlock[1]}">
+                    </div>
+                    <div class="seat-block" data-block-number="3">
+                        <label for="premiumBlock3">Block 3 seats per row</label>
+                        <input id="premiumBlock3" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{premiumEconomy.seatsPerBlock[2]}">
+                    </div>
+                    <div class="seat-block" data-block-number="4">
+                        <label for="premiumBlock4">Block 4 seats per row</label>
+                        <input id="premiumBlock4" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{premiumEconomy.seatsPerBlock[3]}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="cabin" data-cabin="business">
+                <h2>Business</h2>
+                <div class="field">
+                    <label for="businessRows">Total Rows</label>
+                    <input id="businessRows" type="number" min="0" max="100"
+                           th:field="*{business.rows}">
+                </div>
+                <div class="field">
+                    <label for="businessBlocks">Number of Seat Blocks</label>
+                    <input id="businessBlocks" class="block-count"
+                           type="number" min="0" max="4"
+                           th:field="*{business.blockCount}">
+                </div>
+                <div class="blocks">
+                    <div class="seat-block" data-block-number="1">
+                        <label for="businessBlock1">Block 1 seats per row</label>
+                        <input id="businessBlock1" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{business.seatsPerBlock[0]}">
+                    </div>
+                    <div class="seat-block" data-block-number="2">
+                        <label for="businessBlock2">Block 2 seats per row</label>
+                        <input id="businessBlock2" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{business.seatsPerBlock[1]}">
+                    </div>
+                    <div class="seat-block" data-block-number="3">
+                        <label for="businessBlock3">Block 3 seats per row</label>
+                        <input id="businessBlock3" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{business.seatsPerBlock[2]}">
+                    </div>
+                    <div class="seat-block" data-block-number="4">
+                        <label for="businessBlock4">Block 4 seats per row</label>
+                        <input id="businessBlock4" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{business.seatsPerBlock[3]}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="cabin" data-cabin="first">
+                <h2>First Class</h2>
+                <div class="field">
+                    <label for="firstRows">Total Rows</label>
+                    <input id="firstRows" type="number" min="0" max="100"
+                           th:field="*{first.rows}">
+                </div>
+                <div class="field">
+                    <label for="firstBlocks">Number of Seat Blocks</label>
+                    <input id="firstBlocks" class="block-count"
+                           type="number" min="0" max="4"
+                           th:field="*{first.blockCount}">
+                </div>
+                <div class="blocks">
+                    <div class="seat-block" data-block-number="1">
+                        <label for="firstBlock1">Block 1 seats per row</label>
+                        <input id="firstBlock1" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{first.seatsPerBlock[0]}">
+                    </div>
+                    <div class="seat-block" data-block-number="2">
+                        <label for="firstBlock2">Block 2 seats per row</label>
+                        <input id="firstBlock2" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{first.seatsPerBlock[1]}">
+                    </div>
+                    <div class="seat-block" data-block-number="3">
+                        <label for="firstBlock3">Block 3 seats per row</label>
+                        <input id="firstBlock3" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{first.seatsPerBlock[2]}">
+                    </div>
+                    <div class="seat-block" data-block-number="4">
+                        <label for="firstBlock4">Block 4 seats per row</label>
+                        <input id="firstBlock4" class="block-seats"
+                               type="number" min="0" max="26"
+                               th:field="*{first.seatsPerBlock[3]}">
+                    </div>
+                </div>
+            </div>
+
+            <div id="layoutError" class="message error"
+                 role="alert" hidden></div>
+
+            <div class="button-row">
+                <button type="button" class="back-button">Back</button>
+                <button type="submit" class="primary">
+                    Create Aircraft Type
+                </button>
+            </div>
+        </section>
+    </form>
+</main>
+
+<script>
+    const form = document.getElementById("typeForm");
+    const steps = Array.from(document.querySelectorAll(".step"));
+    let currentStep = 0;
+
+    function showStep(index)
+    {
+        currentStep = index;
+
+        steps.forEach((step, stepIndex) =>
+        {
+            step.classList.toggle("active", stepIndex === index);
+        });
+    }
+
+    function stepIsValid(step)
+    {
+        const fields = step.querySelectorAll("input:not(:disabled)");
+
+        for (const field of fields)
+        {
+            if (!field.checkValidity())
+            {
+                field.reportValidity();
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    document.querySelectorAll(".next-button").forEach(button =>
+    {
+        button.addEventListener("click", () =>
+        {
+            if (stepIsValid(steps[currentStep]))
+            {
+                showStep(Math.min(currentStep + 1, steps.length - 1));
+            }
+        });
+    });
+
+    document.querySelectorAll(".back-button").forEach(button =>
+    {
+        button.addEventListener("click", () =>
+        {
+            showStep(Math.max(currentStep - 1, 0));
+        });
+    });
+
+    document.querySelectorAll("[data-cabin]").forEach(cabin =>
+    {
+        const blockCountInput = cabin.querySelector(".block-count");
+
+        function updateBlocks()
+        {
+            const count = Math.max(
+                0,
+                Math.min(4, parseInt(blockCountInput.value, 10) || 0)
+            );
+
+            cabin.querySelectorAll(".seat-block").forEach(block =>
+            {
+                const index = parseInt(block.dataset.blockNumber, 10);
+                const input = block.querySelector(".block-seats");
+                const active = index <= count;
+
+                block.hidden = !active;
+                input.disabled = !active;
+
+                if (!active)
+                {
+                    input.value = 0;
+                }
+            });
+        }
+
+        blockCountInput.addEventListener("input", updateBlocks);
+        updateBlocks();
+    });
+
+    function validateLayout()
+    {
+        let total = 0;
+
+        for (const cabin of document.querySelectorAll("[data-cabin]"))
+        {
+            const rows = parseInt(
+                cabin.querySelector('input[id$="Rows"]').value, 10
+            ) || 0;
+
+            const blocks = parseInt(
+                cabin.querySelector(".block-count").value, 10
+            ) || 0;
+
+            if (blocks < 0 || blocks > 4)
+            {
+                return "Each cabin must have between 0 and 4 blocks.";
+            }
+
+            if (blocks === 0)
+            {
+                if (rows !== 0)
+                {
+                    return "Cabin rows must be zero when block count is zero.";
+                }
+
+                continue;
+            }
+
+            if (rows < 1 || rows > 100)
+            {
+                return "Cabin rows must be between 1 and 100.";
+            }
+
+            let seatsPerRow = 0;
+
+            for (let index = 1; index <= blocks; index++)
+            {
+                const input = cabin.querySelector(
+                    '[data-block-number="' + index + '"] .block-seats'
+                );
+
+                const seats = parseInt(input.value, 10) || 0;
+
+                if (seats < 1 || seats > 26)
+                {
+                    return "Each used block must have between 1 and 26 seats per row.";
+                }
+
+                seatsPerRow += seats;
+            }
+
+            if (seatsPerRow > 26)
+            {
+                return "The total number of seats in a row cannot exceed 26.";
+            }
+
+            total += rows * seatsPerRow;
+        }
+
+        if (total < 1 || total > 1000)
+        {
+            return "Calculated total seat capacity must be between 1 and 1000.";
+        }
+
+        const declared = parseInt(
+            document.getElementById("totalSeats").value, 10
+        ) || 0;
+
+        if (declared !== total)
+        {
+            return "Declared total (" + declared
+                + ") does not match calculated capacity (" + total + ").";
+        }
+
+        return null;
+    }
+
+    form.addEventListener("submit", event =>
+    {
+        const error = validateLayout();
+        const errorElement = document.getElementById("layoutError");
+
+        errorElement.textContent = error || "";
+        errorElement.hidden = !error;
+
+        if (error)
+        {
+            event.preventDefault();
+            showStep(2);
+        }
+    });
+
+    if (document.body.classList.contains("has-errors"))
+    {
+        steps.forEach(step => step.classList.add("active"));
+    }
+    else
+    {
+        showStep(0);
+    }
+</script>
+
+</body>
+</html>

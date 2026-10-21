@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Choose your seat · ' + ${flight.flightNumber} + ' | AirChennai'">Choose your seat | AirChennai</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff8dc 0%, #fffdf5 55%, #fff1b8 100%);
+            color: #292524;
+            font-family: Arial, sans-serif;
+        }
+
+        a { color: inherit; }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 76px;
+            padding: 16px 24px;
+            background: #ffffff;
+            border-bottom: 1px solid #f5df82;
+            box-shadow: 0 6px 20px rgba(161, 98, 7, 0.08);
+        }
+
+        .brand-name { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; color: #854d0e; }
+        .brand-name a { text-decoration: none; }
+
+        .page { max-width: 1040px; margin: 0 auto; padding: 28px 24px 64px; }
+
+        /* ---------- Flight summary ---------- */
+        .summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 18px 24px;
+            background: #ffffff;
+            border: 1px solid #f5df82;
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(161, 98, 7, 0.10);
+        }
+
+        .summary h2 { margin: 0 0 4px; font-size: 22px; }
+        .summary h2 .arrow { color: #ca8a04; padding: 0 6px; }
+        .summary p { margin: 0; color: #78716c; font-size: 14px; }
+
+        .btn-outline {
+            display: inline-block;
+            padding: 10px 16px;
+            border: 1px solid #e7c84b;
+            border-radius: 8px;
+            background: #fffdf5;
+            color: #854d0e;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-outline:hover { background: #fff4bf; }
+
+        .alert {
+            margin: 18px 0 0;
+            padding: 12px 16px;
+            border: 1px solid #fca5a5;
+            border-radius: 10px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 14px;
+        }
+
+        /* ---------- Layout ---------- */
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 24px;
+            align-items: start;
+            margin-top: 24px;
+        }
+
+        .map-card {
+            padding: 22px 18px 26px;
+            background: #ffffff;
+            border: 1px solid #f5df82;
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(161, 98, 7, 0.10);
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px 20px;
+            margin: 0 0 22px;
+            color: #57534e;
+            font-size: 13px;
+        }
+
+        .legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .legend .swatch { width: 22px; height: 22px; }
+
+        /* ---------- Plane ---------- */
+        .plane {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 36px 18px 28px;
+            border: 2px solid #f5df82;
+            border-radius: 120px 120px 36px 36px;
+            background: #fffdf5;
+        }
+
+        .cabin + .cabin { margin-top: 26px; padding-top: 18px; border-top: 2px dashed #f5df82; }
+
+        .cabin-title {
+            margin: 0 0 12px;
+            text-align: center;
+            font-size: 15px;
+            color: #854d0e;
+        }
+
+        .cabin-title small { display: block; margin-top: 2px; color: #78716c; font-size: 12px; font-weight: 400; }
+
+        .seat-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .seat-row.exit { margin-top: 18px; position: relative; }
+        .seat-row.exit::before {
+            content: "EXIT";
+            position: absolute;
+            top: -15px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #b45309;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+        }
+
+        .side { display: flex; gap: 4px; }
+        .aisle { width: 22px; flex: none; }
+
+        .row-no {
+            width: 22px;
+            flex: none;
+            color: #a8a29e;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        /* ---------- Seat icon ---------- */
+        .seat {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .seat svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+
+        .seat .seat-letter {
+            position: absolute;
+            top: 6px;
+            left: 0;
+            right: 0;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        .seat.free     { color: #fde68a; }
+        .seat.free .seat-letter { color: #713f12; }
+        .seat.free:hover { color: #facc15; }
+
+        .seat.selected { color: #ca8a04; }
+        .seat.selected .seat-letter { color: #ffffff; }
+
+        .seat.taken    { color: #d6d3d1; cursor: not-allowed; }
+        .seat.taken .seat-letter { color: #78716c; }
+
+        .seat.locked   { color: #f5f5f4; cursor: not-allowed; opacity: 0.7; }
+        .seat.locked .seat-letter { color: #d6d3d1; }
+
+        .seat:focus-visible { outline: 2px solid #ca8a04; outline-offset: 2px; border-radius: 8px; }
+
+        .swatch.free     { color: #fde68a; }
+        .swatch.selected { color: #ca8a04; }
+        .swatch.taken    { color: #d6d3d1; }
+        .swatch.locked   { color: #f5f5f4; }
+        .swatch svg { width: 100%; height: 100%; fill: currentColor; }
+
+        /* ---------- Side panel ---------- */
+        .panel {
+            position: sticky;
+            top: 16px;
+            padding: 22px;
+            background: #ffffff;
+            border: 1px solid #f5df82;
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(161, 98, 7, 0.10);
+        }
+
+        .panel h3 { margin: 0 0 14px; font-size: 18px; }
+        .panel .empty-note { margin: 0; color: #78716c; font-size: 14px; line-height: 1.5; }
+
+        .chosen { margin: 0 0 16px; }
+        .chosen .seat-no { font-size: 32px; font-weight: 800; color: #854d0e; }
+        .chosen .seat-desc { margin-top: 2px; color: #78716c; font-size: 14px; }
+
+        .price-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 0 0 18px;
+            padding-top: 14px;
+            border-top: 1px solid #f5df82;
+            font-size: 14px;
+        }
+
+        .price-line strong { font-size: 18px; }
+
+        .proceed {
+            width: 100%;
+            padding: 13px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #eab308;
+            color: #292524;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .proceed:hover { background: #facc15; }
+
+        .hold-note { margin: 12px 0 0; color: #a8a29e; font-size: 12px; line-height: 1.5; }
+
+        [hidden] { display: none !important; }
+
+        @media (max-width: 860px) {
+            .layout { grid-template-columns: 1fr; }
+            .panel { position: static; order: -1; }
+        }
+
+        @media (max-width: 480px) {
+            .page { padding: 20px 12px 48px; }
+            .seat { width: 34px; height: 34px; }
+            .seat .seat-letter { top: 5px; font-size: 10px; }
+        }
+    </style>
+</head>
+
+<body>
+<!-- Seat icon shared by every seat on the page -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="seat-icon" viewBox="0 0 24 24">
+        <path d="M6 2h12a2 2 0 0 1 2 2v10H4V4a2 2 0 0 1 2-2z"/>
+        <path d="M2 11.5h2.2V19H4a2 2 0 0 1-2-2v-5.5zM19.8 11.5H22V17a2 2 0 0 1-2 2h-.2v-7.5z"/>
+        <path d="M5 15h14a1 1 0 0 1 1 1v3.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V16a1 1 0 0 1 1-1z"/>
+    </symbol>
+</svg>
+
+<header class="top-bar">
+    <h1 class="brand-name"><a th:href="@{/}">AirChennai</a></h1>
+</header>
+
+<main class="page">
+    <section class="summary" aria-label="Your flight">
+        <div>
+            <h2>
+                <span th:text="${flight.origin.city} + ' (' + ${flight.origin.code} + ')'">Chennai (MAA)</span><span class="arrow" aria-hidden="true">&rarr;</span><span th:text="${flight.destination.city} + ' (' + ${flight.destination.code} + ')'">Mumbai (BOM)</span>
+            </h2>
+            <p>
+                <strong th:text="${flight.flightNumber}">AC220</strong>
+                &nbsp;&middot;&nbsp; <span th:text="${flight.departureDate}">Tue, 10 Nov 2026</span>
+                &nbsp;&middot;&nbsp; <span th:text="${flight.departureTime} + ' → ' + ${flight.arrivalTime}">08:55 → 10:55</span>
+                &nbsp;&middot;&nbsp; <span th:text="${fare.label}">Economy</span>
+                &nbsp;&middot;&nbsp; <span th:text="${flight.aircraft}">Airbus A320-200</span>
+            </p>
+        </div>
+        <a class="btn-outline" href="javascript:history.back()">Back to results</a>
+    </section>
+
+    <div class="alert" role="alert" th:if="${error != null}" th:text="${error}">That seat has just been taken.</div>
+
+    <div class="layout">
+        <section class="map-card" aria-label="Seat map">
+            <div class="legend" aria-hidden="true">
+                <span><i class="swatch free"><svg viewBox="0 0 24 24"><use href="#seat-icon"/></svg></i> Available</span>
+                <span><i class="swatch selected"><svg viewBox="0 0 24 24"><use href="#seat-icon"/></svg></i> Selected</span>
+                <span><i class="swatch taken"><svg viewBox="0 0 24 24"><use href="#seat-icon"/></svg></i> Booked</span>
+                <span><i class="swatch locked"><svg viewBox="0 0 24 24"><use href="#seat-icon"/></svg></i> Other cabin</span>
+            </div>
+
+            <div class="plane">
+                <div class="cabin" th:each="s : ${sections}">
+                    <h3 class="cabin-title">
+                        <span th:text="${s.label}">Economy</span>
+                        <small th:if="${s.selectable}" th:text="${s.freeSeats} + ' seats free'">120 seats free</small>
+                        <small th:unless="${s.selectable}">Not part of your fare</small>
+                    </h3>
+
+                    <div class="seat-row" th:each="r : ${s.rows}" th:classappend="${r.exitRow} ? 'exit'">
+                        <span class="row-no" th:text="${r.number}">12</span>
+                        <div class="side">
+                            <button type="button" th:each="seat : ${r.left}"
+                                    th:class="${seat.css}"
+                                    th:data-seat="${seat.number}"
+                                    th:data-info="${seat.positionLabel}"
+                                    th:disabled="${!seat.selectable}"
+                                    th:title="'Seat ' + ${seat.number} + ' · ' + ${seat.stateLabel}"
+                                    th:aria-label="'Seat ' + ${seat.number} + ', ' + ${seat.positionLabel} + ', ' + ${seat.stateLabel}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#seat-icon"/></svg>
+                                <span class="seat-letter" th:text="${seat.letter}">A</span>
+                            </button>
+                        </div>
+                        <span class="aisle"></span>
+                        <div class="side">
+                            <button type="button" th:each="seat : ${r.right}"
+                                    th:class="${seat.css}"
+                                    th:data-seat="${seat.number}"
+                                    th:data-info="${seat.positionLabel}"
+                                    th:disabled="${!seat.selectable}"
+                                    th:title="'Seat ' + ${seat.number} + ' · ' + ${seat.stateLabel}"
+                                    th:aria-label="'Seat ' + ${seat.number} + ', ' + ${seat.positionLabel} + ', ' + ${seat.stateLabel}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#seat-icon"/></svg>
+                                <span class="seat-letter" th:text="${seat.letter}">D</span>
+                            </button>
+                        </div>
+                        <span class="row-no" th:text="${r.number}">12</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="panel" aria-live="polite">
+            <h3>Your seat</h3>
+            <p class="empty-note" id="noSeat">Tap an available seat on the map to select it.</p>
+
+            <form id="seatForm" method="post" th:action="@{/booking/seats}" hidden>
+                <input type="hidden" name="flightInstanceId" th:value="${flight.flightInstanceId}">
+                <input type="hidden" name="cabin" th:value="${fare.code}">
+                <input type="hidden" name="seat" id="seatInput" value="">
+
+                <div class="chosen">
+                    <div class="seat-no" id="seatNo">12A</div>
+                    <div class="seat-desc"><span th:text="${fare.label}">Economy</span> &middot; <span id="seatDesc">Window</span></div>
+                </div>
+
+                <div class="price-line">
+                    <span>Fare per passenger</span>
+                    <strong th:text="${fare.priceText}">&#8377;5,460</strong>
+                </div>
+
+                <button type="submit" class="proceed">Proceed to payment</button>
+                <p class="hold-note" th:text="'The seat is held for ' + ${holdMinutes} + ' minutes once you proceed.'">Held for 10 minutes.</p>
+            </form>
+        </aside>
+    </div>
+</main>
+
+<script>
+    (function () {
+        var form = document.getElementById('seatForm');
+        var noSeat = document.getElementById('noSeat');
+        var seatInput = document.getElementById('seatInput');
+        var seatNo = document.getElementById('seatNo');
+        var seatDesc = document.getElementById('seatDesc');
+
+        function select(btn) {
+            document.querySelectorAll('.seat.selected').forEach(function (b) { b.classList.remove('selected'); });
+            btn.classList.add('selected');
+            seatInput.value = btn.dataset.seat;
+            seatNo.textContent = btn.dataset.seat;
+            seatDesc.textContent = btn.dataset.info;
+            noSeat.hidden = true;
+            form.hidden = false;
+        }
+
+        document.querySelectorAll('.seat.free').forEach(function (btn) {
+            btn.addEventListener('click', function () { select(btn); });
+        });
+
+        // A seat this visitor already holds (e.g. after coming back from payment) is pre-selected.
+        var held = document.querySelector('.seat.selected');
+        if (held) { select(held); }
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Employee | AirChennai</title>
+
+    <th:block th:replace="~{fragments/employee-logout :: styles}"></th:block>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fffdf5;
+            color: #292929;
+        }
+
+        main {
+            max-width: 680px;
+            margin: 38px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            margin: 0 0 24px;
+            font-size: 27px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .card {
+            padding: 26px;
+            margin-bottom: 20px;
+            background: white;
+            border: 1px solid #eadfba;
+            border-radius: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #c9c9c9;
+            border-radius: 6px;
+            font: inherit;
+            text-transform: uppercase;
+        }
+
+        input:focus {
+            outline: 2px solid #ffcc00;
+            outline-offset: 1px;
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 11px 17px;
+            border: 1px solid #292929;
+            border-radius: 6px;
+            background: white;
+            color: #292929;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .primary-button {
+            border-color: #ffcc00;
+            background: #ffcc00;
+        }
+
+        .primary-button:hover {
+            background: #e6b800;
+        }
+
+        .danger-button {
+            border-color: #a52222;
+            background: #a52222;
+            color: white;
+        }
+
+        .danger-button:hover {
+            background: #831a1a;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        .details {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .details th,
+        .details td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee6ce;
+            text-align: left;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+        }
+
+        .details th {
+            width: 38%;
+            font-size: 14px;
+        }
+
+        .details td {
+            font-size: 14px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 15px 18px;
+            border-radius: 7px;
+        }
+
+        .error-message {
+            border: 1px solid #d84a4a;
+            background: #fff0f0;
+            color: #8d1c1c;
+        }
+
+        .success-message {
+            border: 1px solid #b5a04c;
+            background: #fff6cc;
+            color: #514300;
+        }
+
+        .restriction-message {
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 6px;
+            background: #fff0f0;
+            color: #8d1c1c;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            main {
+                margin-top: 28px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .details th {
+                width: 42%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/employee-logout :: header}"></div>
+
+<main>
+    <h1>Remove Employee</h1>
+
+    <!-- Success message after a successful removal -->
+    <div class="message success-message"
+         th:if="${removedEmployeeCode != null}">
+        Employee <strong th:text="${removedEmployeeCode}"></strong>
+        has been removed successfully.
+    </div>
+
+    <!-- Errors from lookup or removal -->
+    <div class="message error-message"
+         th:if="${removeError != null}"
+         th:text="${removeError}">
+    </div>
+
+    <div class="message error-message"
+         th:if="${errors != null}">
+        <ul>
+            <li th:each="error : ${errors}"
+                th:text="${error}">
+            </li>
+        </ul>
+    </div>
+
+    <!-- Search form: shown until an employee is found -->
+    <section class="card" th:if="${employee == null}">
+        <form th:action="@{/employee/hr/employees/remove/lookup}"
+              method="post">
+
+            <label for="employeeCode">Employee Code</label>
+
+            <input type="text"
+                   id="employeeCode"
+                   name="employeeCode"
+                   th:value="${employeeCode}"
+                   maxlength="20"
+                   minlength="3"
+                   pattern="[A-Za-z0-9_-]{3,20}"
+                   placeholder="Enter employee code"
+                   autocomplete="off"
+                   required>
+
+            <div class="button-row">
+                <button type="submit" class="button primary-button">
+                    Find Employee
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Employee information appears only after a successful lookup -->
+    <section class="card" th:if="${employee != null}">
+        <h2>Employee Details</h2>
+
+        <table class="details">
+            <tbody>
+            <tr>
+                <th>Employee Code</th>
+                <td th:text="${employee.employeeCode}"></td>
+            </tr>
+            <tr>
+                <th>First Name</th>
+                <td th:text="${employee.firstName}"></td>
+            </tr>
+            <tr>
+                <th>Last Name</th>
+                <td th:text="${employee.lastName}"></td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td th:text="${employee.email}"></td>
+            </tr>
+            <tr>
+                <th>Mobile Number</th>
+                <td th:text="${employee.phoneNo}"></td>
+            </tr>
+            <tr>
+                <th>Department</th>
+                <td th:text="${employee.department}"></td>
+            </tr>
+            <tr>
+                <th>Base Airport</th>
+
+                <td th:if="${employee.baseAirportCode != null}">
+                    <span th:text="${employee.baseAirportCode}"></span>
+
+                    <span th:if="${employee.baseAirportName != null}"
+                          th:text="| — ${employee.baseAirportName}|">
+                    </span>
+
+                    <span th:if="${employee.baseAirportCity != null}"
+                          th:text="| (${employee.baseAirportCity})|">
+                    </span>
+
+                    <span th:if="${employee.baseAirportActive != null
+                       and !employee.baseAirportActive}"
+                          style="color: #a52222;">
+                        (Inactive)
+                    </span>
+                </td>
+
+                <td th:unless="${employee.baseAirportCode != null}">
+                    Not assigned
+                </td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td th:text="${employee.status}"></td>
+            </tr>
+            <tr>
+                <th>Hired On</th>
+                <td th:text="${employee.hiredOn}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <p class="restriction-message"
+           th:if="${removalRestriction != null}"
+           th:text="${removalRestriction}">
+        </p>
+
+        <div class="button-row">
+            <form th:if="${canRemove}"
+                  th:action="@{/employee/hr/employees/remove/confirm}"
+                  method="post">
+
+                <input type="hidden"
+                       name="employeeCode"
+                       th:value="${employee.employeeCode}">
+
+                <button type="submit" class="button danger-button">
+                    Remove Employee
+                </button>
+            </form>
+
+            <a class="button"
+               th:href="@{/employee/hr/employees/remove}">
+                Enter Another Code
+            </a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

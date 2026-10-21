@@ -1,0 +1,395 @@
+
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Airport | AirChennai</title>
+
+    <th:block th:replace="~{fragments/employee-logout :: styles}"></th:block>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fffdf5;
+            color: #292929;
+        }
+
+        main {
+            max-width: 680px;
+            margin: 38px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            margin: 0 0 24px;
+            font-size: 27px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .card {
+            padding: 26px;
+            margin-bottom: 20px;
+            background: white;
+            border: 1px solid #eadfba;
+            border-radius: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #c9c9c9;
+            border-radius: 6px;
+            background: white;
+            color: #292929;
+            font: inherit;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 2px solid #ffcc00;
+            outline-offset: 1px;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 11px 17px;
+            border: 1px solid #292929;
+            border-radius: 6px;
+            background: white;
+            color: #292929;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .primary-button {
+            border-color: #ffcc00;
+            background: #ffcc00;
+        }
+
+        .primary-button:hover {
+            background: #e6b800;
+        }
+
+        .details {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .details th,
+        .details td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee6ce;
+            text-align: left;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+        }
+
+        .details th {
+            width: 38%;
+            font-size: 14px;
+        }
+
+        .details td {
+            font-size: 14px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 15px 18px;
+            border-radius: 7px;
+            overflow-wrap: anywhere;
+        }
+
+        .error-message {
+            border: 1px solid #d84a4a;
+            background: #fff0f0;
+            color: #8d1c1c;
+        }
+
+        .success-message {
+            border: 1px solid #b5a04c;
+            background: #fff6cc;
+            color: #514300;
+        }
+
+        .restriction-message {
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 6px;
+            background: #fff0f0;
+            color: #8d1c1c;
+            font-size: 14px;
+        }
+
+        .section-heading {
+            margin-top: 26px;
+        }
+
+        @media (max-width: 480px) {
+            main {
+                margin-top: 28px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .details th {
+                width: 42%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/employee-logout :: header}"></div>
+
+<main>
+    <h1>Change Airport</h1>
+
+    <!-- Success message -->
+    <div class="message success-message"
+         th:if="${changedEmployeeCode != null}"
+         role="status">
+
+        Base airport successfully changed for employee
+        <strong th:text="${changedEmployeeCode}"></strong>
+        to
+        <strong th:text="${changedAirportLabel}"></strong>.
+    </div>
+
+    <!-- Errors -->
+    <div class="message error-message"
+         th:if="${changeError != null}"
+         th:text="${changeError}">
+    </div>
+
+    <div class="message error-message"
+         th:if="${errors != null}">
+        <ul>
+            <li th:each="error : ${errors}"
+                th:text="${error}">
+            </li>
+        </ul>
+    </div>
+
+    <!-- Step 1: Find employee -->
+    <section class="card" th:if="${employee == null}">
+        <form th:action="@{/employee/hr/airports/lookup}"
+              method="post">
+
+            <div class="field">
+                <label for="employeeCode">Employee Code</label>
+                <input type="text"
+                       id="employeeCode"
+                       name="employeeCode"
+                       th:value="${employeeCode}"
+                       minlength="3"
+                       maxlength="20"
+                       pattern="[A-Za-z0-9_-]{3,20}"
+                       placeholder="Enter employee code"
+                       autocomplete="off"
+                       required>
+            </div>
+
+            <div class="button-row">
+                <button type="submit" class="button primary-button">
+                    Find Employee
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Employee details -->
+    <section class="card" th:if="${employee != null}">
+        <h2>Employee Details</h2>
+
+        <table class="details">
+            <tbody>
+            <tr>
+                <th>Employee Code</th>
+                <td th:text="${employee.employeeCode}"></td>
+            </tr>
+            <tr>
+                <th>First Name</th>
+                <td th:text="${employee.firstName}"></td>
+            </tr>
+            <tr>
+                <th>Last Name</th>
+                <td th:text="${employee.lastName}"></td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td th:text="${employee.email}"></td>
+            </tr>
+            <tr>
+                <th>Department</th>
+                <td th:text="${employee.department}"></td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td th:text="${employee.status}"></td>
+            </tr>
+            <tr>
+                <th>Current Airport</th>
+                <td th:if="${employee.baseAirportCode != null}">
+                    <span th:text="${employee.baseAirportCode}"></span>
+                    <span th:if="${employee.baseAirportName != null}"
+                          th:text="| — ${employee.baseAirportName}|">
+                            </span>
+                    <span th:if="${employee.baseAirportCity != null}"
+                          th:text="| (${employee.baseAirportCity})|">
+                            </span>
+                    <span th:if="${employee.baseAirportActive != null
+                                           and !employee.baseAirportActive}"
+                          style="color: #a52222;">
+                                (Inactive)
+                            </span>
+                </td>
+                <td th:unless="${employee.baseAirportCode != null}">
+                    Not assigned
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="restriction-message"
+             th:if="${changeRestriction != null}"
+             th:text="${changeRestriction}">
+        </div>
+
+        <!-- Step 2: Select an active airport code -->
+        <form th:if="${canChangeAirport and selectedAirport == null}"
+              th:action="@{/employee/hr/airports/preview}"
+              method="post">
+
+            <input type="hidden"
+                   name="employeeCode"
+                   th:value="${employee.employeeCode}">
+
+            <h2 class="section-heading">Select New Airport</h2>
+
+            <div class="field">
+                <label for="airportCode">IATA Airport Code</label>
+
+                <select id="airportCode"
+                        name="airportCode"
+                        required>
+                    <option value="">Select airport code</option>
+
+                    <option th:each="code : ${activeAirportCodes}"
+                            th:value="${code}"
+                            th:text="${code}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="button-row">
+                <button type="submit"
+                        class="button primary-button">
+                    View Airport
+                </button>
+
+                <a class="button"
+                   th:href="@{/employee/hr/airports}">
+                    Enter Another Code
+                </a>
+            </div>
+        </form>
+
+        <!-- Step 3: Display selected airport details -->
+        <section th:if="${selectedAirport != null}">
+            <h2 class="section-heading">Selected Airport Details</h2>
+
+            <table class="details">
+                <tbody>
+                <tr>
+                    <th>IATA Code</th>
+                    <td th:text="${selectedAirport.code}"></td>
+                </tr>
+                <tr>
+                    <th>Airport Name</th>
+                    <td th:text="${selectedAirport.name}"></td>
+                </tr>
+                <tr>
+                    <th>City</th>
+                    <td th:text="${selectedAirport.city}"></td>
+                </tr>
+                <tr>
+                    <th>Country</th>
+                    <td th:text="${selectedAirport.country}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="button-row">
+                <form th:action="@{/employee/hr/airports/change}"
+                      method="post">
+
+                    <input type="hidden"
+                           name="employeeCode"
+                           th:value="${employee.employeeCode}">
+
+                    <input type="hidden"
+                           name="airportCode"
+                           th:value="${selectedAirport.code}">
+
+                    <button type="submit"
+                            class="button primary-button">
+                        Confirm Change
+                    </button>
+                </form>
+
+                <form th:action="@{/employee/hr/airports/lookup}"
+                      method="post">
+
+                    <input type="hidden"
+                           name="employeeCode"
+                           th:value="${employee.employeeCode}">
+
+                    <button type="submit" class="button">
+                        Select Another Airport
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </section>
+</main>
+
+</body>
+</html>
