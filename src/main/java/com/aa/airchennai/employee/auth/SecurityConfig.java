@@ -33,6 +33,10 @@ public class SecurityConfig
         http.authenticationProvider(employeeAuthenticationProvider)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
+                                "/",
+                                "/api/airports",
+                                "/booking/**",
+                                "/flights/**",
                                 "/employee/login",
                                 "/employee/forgot-password",
                                 "/error",

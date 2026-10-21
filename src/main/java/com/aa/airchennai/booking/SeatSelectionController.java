@@ -34,10 +34,12 @@ public class SeatSelectionController
 
     private final FlightSearchService flights;
     private final SeatSelectionService seats;
+    private final PassengerDetailsService passengerDetails;
 
-    public SeatSelectionController(FlightSearchService flights, SeatSelectionService seats) {
+    public SeatSelectionController(FlightSearchService flights, SeatSelectionService seats, PassengerDetailsService passengerDetails) {
         this.flights = flights;
         this.seats = seats;
+        this.passengerDetails = passengerDetails;
     }
 
     @GetMapping("/booking/seats")
@@ -49,6 +51,9 @@ public class SeatSelectionController
         Optional<CabinFare> fare = flight.flatMap(f -> fareFor(f, cabin));
         if (fare.isEmpty()) {
             return "redirect:/";
+        }
+        if (!passengerDetails.exists(session)) {
+            return "redirect:/booking/passenger-details?flightInstanceId=" + flightInstanceId + "&cabin=" + fare.get().code();
         }
         String token = token(session);
 

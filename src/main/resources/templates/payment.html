@@ -155,14 +155,15 @@
         <strong th:text="${totalText}">&#8377;5,460</strong>
     </div>
 
-    <fieldset disabled>
+    <fieldset id="paymentMethods">
         <legend>Payment method</legend>
-        <label class="method"><input type="radio" name="method" value="UPI" checked> UPI</label>
+        <label class="method"><input type="radio" name="method" value="UPI"> UPI</label>
         <label class="method"><input type="radio" name="method" value="CARD"> Credit / debit card</label>
         <label class="method"><input type="radio" name="method" value="NET_BANKING"> Net banking</label>
     </fieldset>
 
-    <button type="button" class="pay" disabled th:text="'Pay ' + ${totalText}">Pay</button>
+    <button type="button" id="payButton" class="pay" disabled th:text="'Pay ' + ${totalText}">Pay</button>
+    <p id="paymentMessage" class="note" hidden></p>
 
     <p class="note">Passenger details and the payment gateway are the next step to build. Your seat stays held until the timer runs out.</p>
 
@@ -174,6 +175,29 @@
 
 <script>
     (function () {
+        var paymentMethods = document.getElementById('paymentMethods');
+        var payButton = document.getElementById('payButton');
+        var paymentMessage = document.getElementById('paymentMessage');
+
+        paymentMethods.addEventListener('change', function (event) {
+            if (event.target.name === 'method') {
+                payButton.disabled = false;
+                paymentMessage.hidden = true;
+            }
+        });
+
+        payButton.addEventListener('click', function () {
+            var selected = paymentMethods.querySelector('input[name="method"]:checked');
+            if (!selected) {
+                paymentMessage.textContent = 'Please select a payment method first.';
+                paymentMessage.hidden = false;
+                return;
+            }
+            paymentMessage.textContent = 'Selected payment method: ' + selected.value.replace('_', ' ') +
+                '. Payment processing is not connected yet; no payment has been made.';
+            paymentMessage.hidden = false;
+        });
+
         var timer = document.getElementById('timer');
         var clock = document.getElementById('clock');
         var until = Number(timer.dataset.until);
