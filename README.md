@@ -4,9 +4,6 @@ AirChennai is a Spring Boot web application for an Indian domestic airline. Cust
 (direct and one-stop), choose a seat and move to payment; airline staff log in to an employee portal
 where HR manages employees and Fleet defines aircraft types and seat layouts.
 
-> **Status:** work in progress. The sections below describe what is implemented *today*. Planned
-> features are listed under [Roadmap](#roadmap).
-
 ## Features
 
 **Customer side (no account needed – guest booking)**
@@ -147,4 +144,5 @@ adding routes and flights from the employee portal, baggage mapping at check-in.
 
 ## Team
 
-Adithya ([@adithyapi4](https://github.com/adithyapi4)) – employee / admin side · teammate – customer side
+Adithya C S ([@adithyapi4](https://github.com/adithyapi4)) – employee / admin side
+Aravind N ([@aravindgit-1007](https://github.com/Aravindgit-1007)) – employee / admin side
