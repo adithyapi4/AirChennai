@@ -13,9 +13,6 @@ document matches every route in the code.
 - All `POST` forms are CSRF-protected (Spring Security default) – browsers get the token from the Thymeleaf form; API clients must send it.
 - Access: **Public** = no login intended; **Login** = any signed-in employee; **HR** = role `HR` (`ROLE_HR`).
 
-> ⚠ **Public\*** – these routes are *intended* to be public, but the current `SecurityConfig` ends with
-> `anyRequest().authenticated()` and does not whitelist them, so anonymous visitors are redirected to
-> `/employee/login`. See `RUBRIC_GAP_ANALYSIS.md`, issue B1. Update this note once fixed.
 
 ---
 
