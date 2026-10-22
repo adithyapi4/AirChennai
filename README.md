@@ -144,5 +144,5 @@ adding routes and flights from the employee portal, baggage mapping at check-in.
 
 ## Team
 
-Adithya C S ([@adithyapi4](https://github.com/adithyapi4)) – employee / admin side
+Adithya C S ([@adithyapi4](https://github.com/adithyapi4)) – employee / admin side . 
 Aravind N ([@aravindgit-1007](https://github.com/Aravindgit-1007)) – employee / admin side
