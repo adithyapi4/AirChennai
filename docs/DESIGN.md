@@ -201,5 +201,4 @@ seat layouts on commit.
   INSERT INTO employee (employee_code,email,password_hash,first_name,last_name,phone_no,department,status,hired_on,must_change_password)
   VALUES ('HR001','hr@airchennai.local','<bcrypt-hash>','Hema','Rao','9000000001','HR','ACTIVE',CURRENT_DATE,TRUE);
   ```
-- The current security rules require login for every URL that is not explicitly whitelisted (see `RUBRIC_GAP_ANALYSIS.md`, B1).
 - Data access is plain SQL through Spring JDBC; no JPA entities yet.
